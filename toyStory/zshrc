@@ -1,0 +1,206 @@
+##############################
+### Custom prompt sections ###
+##############################
+
+# Print an icon within a block with the powerline style
+
+
+prompt_zsh_funnyIcon () {
+    local color='%F{067}'
+    local bgcolor='%K{236}'
+    local symbol='\uf300'
+    if [ ${mode} = 'minimal' ]; then
+        echo -n "%K{130}%F{236}\uE0B2%f%k$bgcolor$color $symbol %f%k";
+    else
+        echo -n "%K{130}%F{236}\uE0B2%f%k$bgcolor$color $symbol %f%k";
+    fi
+}
+
+# Print a name within a block with the powerline style
+prompt_zsh_user () {
+    local color='%F{232}'
+    local bgcolor='%K{252}'
+    local user='Victor'
+    echo -n "$color$bgcolor $user %f%k%F{252}%K{054}\ue0b0%f%k";
+}
+
+# Print the hostname within a block with the powerline style
+prompt_zsh_host () {
+    local color='%F{232}'
+    local bgcolor='%K{054}'
+    local host='Lightyear'
+    echo -n "$color$bgcolor $host %f%k%F{054}%K{107}\ue0b0%f%k";
+}
+
+
+###############
+### Exports ###
+###############
+
+export ZSH=~/.oh-my-zsh
+export TERM=xterm-256color
+export LANG=en_US.UTF-8
+#export CLASSPATH=~/Programação/MAC323/algs4.jar:./obj/:.:~/Documents/Bea/MAC0209/EP3/lib/osp.jar
+export PATH=$PATH:/user/local/algs4/bin
+export PATH=$PATH:/home/victor/.gem/ruby/2.5.0/bin
+export CLASSPATH=$CLASSPATH:/usr/local/algs4/algs4.jar
+export CLASSPATH=$CLASSPATH:~/Documents/5ºsemestre/mac0323-2018/meusEps/classmexer.jar
+#######################
+### Theme's options ###
+#######################
+
+ZSH_THEME="powerlevel9k/powerlevel9k"
+POWERLEVEL9K_MODE='nerdfont-complete'
+
+### Two line prompt ###
+POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+
+### Second line prefix ###
+POWERLEVEL9K_MULTILINE_FIRST_PROMPT_PREFIX=""
+POWERLEVEL9K_MULTILINE_SECOND_PROMPT_PREFIX="%K{067}%F{234} $ %f%k%F{124}\uE0B0%f "
+
+### Time ###
+POWERLEVEL9K_TIME_FORMAT="%D{\uf017 %H:%M}"
+POWERLEVEL9K_TIME_FOREGROUND='130'
+POWERLEVEL9K_TIME_BACKGROUND='221'
+
+### Status ###
+POWERLEVEL9K_STATUS_VERBOSE=false
+
+### OS icon ###
+POWERLEVEL9K_LINUX_ICON="\uF300"
+
+### Directory ###
+POWERLEVEL9K_SHORTEN_STRATEGY="truncate_middle"
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=0
+POWERLEVEL9K_DIR_HOME_FOREGROUND='232'
+POWERLEVEL9K_DIR_HOME_BACKGROUND='107'
+POWERLEVEL9K_DIR_DEFAULT_FOREGROUND='232'
+POWERLEVEL9K_DIR_DEFAULT_BACKGROUND='107'
+POWERLEVEL9K_DIR_HOME_SUBFOLDER_FOREGROUND='232'
+POWERLEVEL9K_DIR_HOME_SUBFOLDER_BACKGROUND='107'
+
+
+### Battery ###
+#--- LOW ---
+POWERLEVEL9K_BATTERY_LOW_FOREGROUND='232'
+POWERLEVEL9K_BATTERY_LOW_BACKGROUND='223'
+
+#--- CHARGED ---
+POWERLEVEL9K_BATTERY_CHARGED_FOREGROUND='232'
+POWERLEVEL9K_BATTERY_CHARGED_BACKGROUND='223'
+
+#--- CHARGING ---
+POWERLEVEL9K_BATTERY_CHARGING_FOREGROUND='232'
+POWERLEVEL9K_BATTERY_CHARGING_BACKGROUND='223'
+
+#--- DISCONNECTED ---
+POWERLEVEL9K_BATTERY_DISCONNECTED_FOREGROUND='232'
+POWERLEVEL9K_BATTERY_DISCONNECTED_BACKGROUND='223'
+
+### Github ###
+POWERLEVEL9K_VCS_CLEAN_BACKGROUND='076'
+POWERLEVEL9K_VCS_MODIFIED_BACKGROUND='184'
+POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND='184'
+
+###############
+### Plugins ###
+###############
+
+plugins=(git)
+
+##############
+### Source ###
+##############
+
+source $ZSH/oh-my-zsh.sh
+
+###############
+### Aliases ###
+###############
+
+alias zshrc="nvim ~/.zshrc"
+alias ohmyzsh="nvim ~/.oh-my-zsh"
+alias gitconfig="nvim ~/.gitconfig"
+alias inputrc="nvim ~/.inputrc"
+alias vimrc="nvim ~/.vimrc"
+alias nvimrc="nvim ~/.config/nvim/init.vim"
+alias i3rc="nvim ~/.config/i3/config"
+alias i3blocksrc="nvim ~/.config/i3/i3blocks.conf"
+
+
+########################
+### Custom Functions ###
+########################
+
+## Resize ###
+LAST_COLUMNS=0
+
+TRAPWINCH() {
+    init
+    if [ ${COLUMNS} -ne ${LAST_COLUMNS} ]; then
+        clear
+        zle reset-prompt
+        COLUMNS=${LAST_COLUMNS}
+    fi
+}
+
+## Update ###
+TRAPALARM() {
+    zle reset-prompt
+}
+
+## Size ###
+
+# Get the left prompt size in characters
+lp_size() {
+    LEFT_P="$(print_icon MULTILINE_FIRST_PROMPT_PREFIX)%f%b%k$(build_left_prompt)"
+    local zero='%([BSUbfksu]|([FK]|){*})'
+    echo "${#${(S%%)LEFT_P//$~zero/}}"
+}
+
+# Get the right prompt size in characters
+rp_size() {
+    LEFT_P="$RPROMPT_PREFIX%f%b%k$(build_right_prompt)%{$reset_color%}$RPROMPT_SUFFIX"
+    local zero='%([BSUbfksu]|([FK]|){*})'
+    echo "${#${(S%%)LEFT_P//$~zero/}}"
+}
+
+## Mode ###
+mode="none"
+isMinimal=0
+
+# Change the prompt mode
+mode () {
+    if [ $1 = '' ]; then
+        echo "Usage: mode <profile>"
+    else
+        mode=$1
+        $1
+    fi
+}
+
+# Initialize the prompt
+init() {
+    minimal="_minimal"
+    if [ $mode = "none" ]; then
+        mode='normal'
+    fi
+
+    if [ $((`lp_size` + `rp_size`)) -gt $COLUMNS ]; then
+        mode $mode$minimal
+    else
+        mode $mode
+    fi
+
+}
+
+################
+### PROFILES ###
+################
+normal () {
+    POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(zsh_user zsh_host dir vcs battery)
+    POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status time zsh_funnyIcon)
+}
+
+init
